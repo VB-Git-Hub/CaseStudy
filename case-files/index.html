@@ -610,6 +610,8 @@ function markViewed(id){
   viewedIds.add(id);
 }
 
+let solvedCursor = 0;
+
 function renderSolvedGrid(){
   const solvedGrid = document.getElementById('solvedGrid');
   const available = solved.filter(item => !viewedIds.has(item.id));
@@ -617,7 +619,12 @@ function renderSolvedGrid(){
     solvedGrid.innerHTML = '<p class="empty-note">You\'ve seen every closed case here — check back soon for more.</p>';
     return;
   }
-  const pick = available.slice(0, Math.min(3, available.length));
+  const displayCount = Math.min(3, available.length);
+  const pick = [];
+  for(let i=0; i<displayCount; i++){
+    pick.push(available[(solvedCursor + i) % available.length]);
+  }
+  solvedCursor = (solvedCursor + displayCount) % available.length;
   solvedGrid.innerHTML='';
   pick.forEach(item=>{
     const c=document.createElement('div');
@@ -629,6 +636,8 @@ function renderSolvedGrid(){
   });
 }
 
+let teenCursor = 0;
+
 function renderTeenGrid(){
   const teenGrid = document.getElementById('teenGrid');
   const available = open.filter(item => !viewedIds.has(item.id));
@@ -636,7 +645,12 @@ function renderTeenGrid(){
     teenGrid.innerHTML = '<p class="empty-note">You\'ve seen every teen case here — check back soon for more.</p>';
     return;
   }
-  const pick = available.slice(0, Math.min(3, available.length));
+  const displayCount = Math.min(3, available.length);
+  const pick = [];
+  for(let i=0; i<displayCount; i++){
+    pick.push(available[(teenCursor + i) % available.length]);
+  }
+  teenCursor = (teenCursor + displayCount) % available.length;
   teenGrid.innerHTML='';
   pick.forEach(item=>{
     const c=document.createElement('div');
@@ -648,6 +662,8 @@ function renderTeenGrid(){
   });
 }
 
+let problemsCursor = 0;
+
 function renderProblemsGrid(){
   const problemsGrid = document.getElementById('problemsGrid');
   const available = problems.filter(item => !viewedIds.has(item.id));
@@ -655,7 +671,12 @@ function renderProblemsGrid(){
     problemsGrid.innerHTML = '<p class="empty-note">You\'ve seen every open problem here — check back soon for more.</p>';
     return;
   }
-  const pick = available.slice(0, Math.min(3, available.length));
+  const displayCount = Math.min(3, available.length);
+  const pick = [];
+  for(let i=0; i<displayCount; i++){
+    pick.push(available[(problemsCursor + i) % available.length]);
+  }
+  problemsCursor = (problemsCursor + displayCount) % available.length;
   problemsGrid.innerHTML='';
   pick.forEach(item=>{
     const c=document.createElement('div');
