@@ -708,11 +708,18 @@ function renderFact(){
 }
 
 async function refreshAll(){
+  const btn = document.getElementById('discoverBtn');
+  if(btn) btn.classList.add('spin');
+  document.getElementById('solvedGrid').innerHTML = '<p class="empty-note">Loading case files…</p>';
+  document.getElementById('teenGrid').innerHTML = '<p class="empty-note">Loading case files…</p>';
+  document.getElementById('problemsGrid').innerHTML = '<p class="empty-note">Loading case files…</p>';
+  await loadCases();
   renderFact();
   renderQuote();
   renderSolvedGrid();
   renderTeenGrid();
   renderProblemsGrid();
+  if(btn) btn.classList.remove('spin');
 }
 
 renderFact();
