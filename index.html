@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Files — Solved & Unsolved</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14161c;
+    --panel:#1c1f28;
+    --paper:#f2ead9;
+    --paper-dark:#e6dcc4;
+    --ink:#22201b;
+    --ink-soft:#5c584d;
+    --red:#b23a2f;
+    --red-dark:#8a2b22;
+    --green:#3d6b4f;
+    --amber:#c9902f;
+    --line:#2c303c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:#e8e6df;
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 20px 80px;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin:0 0 10px;
+  }
+  h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:clamp(34px,6vw,58px);
+    text-transform:uppercase;
+    letter-spacing:.01em;
+    line-height:0.98;
+    margin:0 0 14px;
+    color:#f5f2ea;
+  }
+  .hero{
+    border-bottom:1px solid var(--line);
+    padding-bottom:28px;
+    margin-bottom:36px;
+  }
+  .title-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .hero-controls{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .discover-note{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--amber);
+    margin:0;
+    min-height:16px;
+  }
+  .refresh-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:#c9c6bc;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.04em;
+    padding:8px 14px;
+    border-radius:3px;
+    cursor:pointer;
+    margin-bottom:14px;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .refresh-btn:hover{border-color:var(--amber);color:var(--amber);}
+  .refresh-icon{
+    display:inline-block;
+    font-size:14px;
+    transition:transform .4s ease;
+  }
+  .refresh-btn.spin .refresh-icon{transform:rotate(360deg);}
+  .empty-note{
+    grid-column:1/-1;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    color:#8a8779;
+    padding:20px 0 10px;
+  }
+  .review-btn{
+    grid-column:1/-1;
+    max-width:280px;
+    color:var(--paper);
+    background:var(--panel);
+    border-color:var(--line);
+  }
+  .fact{
+    font-size:16px;
+    line-height:1.65;
+    color:#c7c4ba;
+    max-width:640px;
+  }
+  .fact a{color:#f2ead9;font-weight:600;text-decoration:none;border-bottom:1px dotted #f2ead9;}
+  .fact a:hover{color:var(--amber);border-bottom-color:var(--amber);}
+  .quote{
+    font-family:'Oswald',sans-serif;
+    font-size:17px;
+    font-style:normal;
+    font-weight:500;
+    color:var(--amber);
+    max-width:640px;
+    margin:14px 0 0;
+    padding-left:14px;
+    border-left:2px solid var(--amber);
+  }
+  .quote .attr{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    font-weight:400;
+    color:#9a9585;
+    margin-top:4px;
+  }
+  .quote .attr a{
+    color:inherit;
+    text-decoration:none;
+    border-bottom:1px dotted #9a9585;
+  }
+  .quote .attr a:hover{
+    color:var(--amber);
+    border-bottom-color:var(--amber);
+  }
+  .user-line{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:#8a8779;
+    margin:0 0 10px;
+  }
+  .user-line a{
+    color:var(--amber);
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  h2.section{
+    font-family:'Oswald',sans-serif;
+    font-size:22px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:#f5f2ea;
+    margin:44px 0 6px;
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .section-sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    color:#8a8779;
+    margin:0 0 18px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:16px;
+  }
+  .sections-columns{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:0 28px;
+  }
+  .section-col .grid{
+    grid-template-columns:1fr;
+  }
+  @media (max-width:780px){
+    .sections-columns{
+      grid-template-columns:1fr;
+      gap:0;
+    }
+  }
+  .card{
+    position:relative;
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:3px;
+    padding:20px 18px 22px;
+    cursor:pointer;
+    box-shadow:0 1px 0 rgba(0,0,0,.4), 0 8px 18px rgba(0,0,0,.25);
+    transition:transform .18s ease, box-shadow .18s ease;
+    border:1px solid var(--paper-dark);
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 4px 0 rgba(0,0,0,.4), 0 14px 26px rgba(0,0,0,.32);}
+  .stamp{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    padding:3px 8px;
+    border-radius:2px;
+    display:inline-block;
+    margin-bottom:10px;
+    border:1.5px solid currentColor;
+  }
+  .stamp.solved{color:var(--green);}
+  .stamp.open{color:var(--red);}
+  .card h3{
+    font-family:'Oswald',sans-serif;
+    font-size:19px;
+    font-weight:600;
+    line-height:1.15;
+    margin:0 0 8px;
+    text-transform:none;
+  }
+  .card p{font-size:13.5px;line-height:1.5;color:var(--ink-soft);margin:0;}
+  .card .yr{
+    position:absolute;
+    top:16px;right:16px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:#9a9585;
+  }
+  .card.headline{
+    padding:22px 20px;
+    min-height:96px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .card.headline h3{margin:0;font-size:20px;line-height:1.25;}
+
+  .next-section{
+    margin-top:28px;
+    padding-top:22px;
+    border-top:1px solid var(--paper-dark);
+  }
+  .next-section h4{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 12px;
+  }
+  .next-options{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .next-opt{
+    text-align:left;
+    background:#fff;
+    border:1px solid var(--paper-dark);
+    border-radius:4px;
+    padding:12px 14px;
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;
+    color:var(--ink);
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .next-opt:hover{border-color:var(--red);background:#fdf6f0;}
+  .next-opt.picked{
+    border-color:var(--red);
+    background:#fdf1ee;
+    font-weight:600;
+  }
+  .next-confirm{
+    display:none;
+    margin-top:10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    color:var(--red-dark);
+  }
+  .next-confirm.show{display:block;}
+
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(10,11,15,.72);
+    display:none;
+    align-items:flex-start;
+    justify-content:center;
+    padding:40px 16px;
+    overflow-y:auto;
+    z-index:10;
+  }
+  .overlay.active{display:flex;}
+  .detail{
+    background:var(--paper);
+    color:var(--ink);
+    max-width:640px;
+    width:100%;
+    border-radius:4px;
+    padding:34px 30px 30px;
+    position:relative;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .close{
+    position:absolute;top:16px;right:18px;
+    background:none;border:none;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    letter-spacing:.08em;
+  }
+  .close:hover{color:var(--ink);}
+  .detail .stamp{margin-bottom:14px;}
+  .detail h2{
+    font-family:'Oswald',sans-serif;
+    font-size:30px;
+    font-weight:700;
+    margin:0 0 16px;
+    line-height:1.05;
+    text-transform:none;
+  }
+  .detail .story p{
+    font-size:15px;
+    line-height:1.7;
+    margin:0 0 14px;
+    color:#2e2b25;
+  }
+  .diagram{margin:20px 0;background:#fff;border:1px solid var(--paper-dark);border-radius:4px;padding:10px;}
+  .diagram svg{display:block;width:100%;height:auto;}
+  .source{
+    margin-top:20px;
+    padding-top:14px;
+    border-top:1px dashed var(--paper-dark);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    line-height:1.6;
+    color:#7a7666;
+  }
+  .links{
+    margin-top:12px;
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+  }
+  .links-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:#7a7666;
+    margin-bottom:2px;
+  }
+  .links a{
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    color:var(--red-dark);
+    text-decoration:none;
+    border-bottom:1px solid transparent;
+  }
+  .links a:hover{border-bottom-color:var(--red-dark);}
+  .next-btn{
+    margin-top:22px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:11px 18px;
+    border-radius:3px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    cursor:pointer;
+  }
+  .next-btn:hover{background:#3a362d;}
+  .pick-note{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:14px 16px;
+    margin-top:14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--amber);
+    display:none;
+  }
+  .pick-note.show{display:block;}
+  footer{
+    margin-top:60px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    font-size:12px;
+    color:#6b6a63;
+  }
+  @media (prefers-reduced-motion: reduce){.card{transition:none;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <p class="eyebrow">Case files — real stories, verified</p>
+    <div class="title-row">
+      <h1>Solved. And still open.</h1>
+      <button class="refresh-btn" id="discoverBtn" onclick="refreshAll()">
+        <span class="refresh-icon">&#8635;</span> Refresh
+      </button>
+    </div>
+    <p class="user-line" id="userLine"></p>
+    <p class="fact" id="factText"></p>
+    <p class="quote" id="quoteText"></p>
+  </div>
+
+  <div class="sections-columns">
+    <div class="section-col">
+      <h2 class="section">Cases closed by adults</h2>
+      <p class="section-sub">Pick a headline to see exactly how it got solved.</p>
+      <div class="grid" id="solvedGrid"></div>
+    </div>
+
+    <div class="section-col">
+      <h2 class="section">Teens on the case</h2>
+      <p class="section-sub">Real teens, working on real problems, right now.</p>
+      <div class="grid" id="teenGrid"></div>
+    </div>
+
+    <div class="section-col">
+      <h2 class="section">Problems still wide open</h2>
+      <p class="section-sub">Nobody's cracked these yet.</p>
+      <div class="grid" id="problemsGrid"></div>
+    </div>
+  </div>
+
+  <footer>All facts checked against primary sources — see the source note inside each case file.</footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="detail" id="detailPanel"></div>
+</div>
+
+<script>
+let solved = [];
+
+let open = [];
+
+function flowSvg(steps){
+  const colors=['#b23a2f','#c9902f','#3d6b4f','#2e5f8a'];
+  let boxes='', arrows='';
+  const w=150,gap=14,h=54,startX=6,y=10;
+  steps.forEach((s,i)=>{
+    const x=startX+i*(w+gap);
+    boxes+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${colors[i%4]}22" stroke="${colors[i%4]}" stroke-width="1"/>
+      <text x="${x+w/2}" y="${y+22}" text-anchor="middle" font-size="11" font-weight="600" fill="#22201b" font-family="Inter,sans-serif">${s[0]}</text>
+      <text x="${x+w/2}" y="${y+38}" text-anchor="middle" font-size="9.5" fill="#5c584d" font-family="Inter,sans-serif">${s[1]}</text>`;
+    if(i<steps.length-1){
+      const ax=x+w, ay=y+h/2;
+      arrows+=`<line x1="${ax+2}" y1="${ay}" x2="${ax+gap-2}" y2="${ay}" stroke="#5c584d" stroke-width="1.5" marker-end="url(#ah)"/>`;
+    }
+  });
+  const totalW = steps.length*(w+gap)-gap+12;
+  return `<svg viewBox="0 0 ${totalW} 78" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#5c584d" stroke-width="1.5"/></marker></defs>
+    ${boxes}${arrows}
+  </svg>`;
+}
+
+function chainSvg(){
+  return `<svg viewBox="0 0 500 90" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="70" cy="45" rx="55" ry="26" fill="#c9902f22" stroke="#c9902f" stroke-width="1"/>
+    <text x="70" y="42" text-anchor="middle" font-size="11" font-weight="600" fill="#22201b" font-family="Inter,sans-serif">cornmeal only</text>
+    <text x="70" y="56" text-anchor="middle" font-size="9" fill="#5c584d" font-family="Inter,sans-serif">missing niacin</text>
+    <line x1="128" y1="45" x2="185" y2="45" stroke="#5c584d" stroke-width="1.5" marker-end="url(#ah2)"/>
+    <ellipse cx="245" cy="45" rx="55" ry="26" fill="#b23a2f22" stroke="#b23a2f" stroke-width="1"/>
+    <text x="245" y="48" text-anchor="middle" font-size="11" font-weight="600" fill="#22201b" font-family="Inter,sans-serif">pellagra</text>
+    <line x1="303" y1="45" x2="360" y2="45" stroke="#5c584d" stroke-width="1.5" marker-end="url(#ah2)"/>
+    <ellipse cx="420" cy="45" rx="50" ry="26" fill="#3d6b4f22" stroke="#3d6b4f" stroke-width="1"/>
+    <text x="420" y="48" text-anchor="middle" font-size="11" font-weight="600" fill="#22201b" font-family="Inter,sans-serif">cured</text>
+    <defs><marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#5c584d" stroke-width="1.5"/></marker></defs>
+  </svg>`;
+}
+
+let facts = [
+  { text:"there's a piece of hardware still sitting untouched on the Moon — Apollo 11's landing stage, left there in 1969. No wind, no rain, so it hasn't moved an inch in over 55 years.", url:"https://en.wikipedia.org/wiki/Apollo_11" },
+  { text:"a flight recorder isn't actually black — it's painted bright orange so rescue teams can spot it in wreckage.", url:"https://en.wikipedia.org/wiki/Flight_recorder" },
+  { text:"penicillin, the first antibiotic, was discovered by accident when a scientist noticed mold killing bacteria in a forgotten petri dish.", url:"https://en.wikipedia.org/wiki/Penicillin" },
+  { text:"the International Space Station orbits Earth roughly every 90 minutes — astronauts on board see 16 sunrises and sunsets a day.", url:"https://en.wikipedia.org/wiki/International_Space_Station" },
+  { text:"the largest living bird in North America, the California condor, can glide for hours without flapping its wings once.", url:"https://en.wikipedia.org/wiki/California_condor" },
+  { text:"octopuses have three hearts, and two of them stop beating whenever the octopus swims.", url:"https://en.wikipedia.org/wiki/Octopus" },
+  { text:"a bolt of lightning is roughly five times hotter than the surface of the sun.", url:"https://en.wikipedia.org/wiki/Lightning" },
+  { text:"honey found in ancient Egyptian tombs, thousands of years old, is technically still edible.", url:"https://en.wikipedia.org/wiki/Honey" },
+  { text:"bananas are technically classified as berries, botanically speaking.", url:"https://en.wikipedia.org/wiki/Banana" },
+  { text:"sharks have been around longer than trees — by tens of millions of years.", url:"https://en.wikipedia.org/wiki/Shark" },
+  { text:"wombats are the only animal known to produce cube-shaped droppings.", url:"https://en.wikipedia.org/wiki/Wombat" },
+  { text:"octopus blood is blue, because it's built around copper instead of iron.", url:"https://en.wikipedia.org/wiki/Hemocyanin" },
+  { text:"the first computer 'bug' was an actual moth found stuck in a machine in 1947.", url:"https://en.wikipedia.org/wiki/Software_bug" },
+  { text:"astronauts can temporarily grow a couple of centimeters taller while in microgravity.", url:"https://en.wikipedia.org/wiki/Effect_of_spaceflight_on_the_human_body" },
+  { text:"sea otters hold hands while sleeping so they don't drift apart from each other.", url:"https://en.wikipedia.org/wiki/Sea_otter" }
+];
+
+let quotes = [
+  { text:"Could you patent the sun?", attr:"Jonas Salk, on why he never patented the polio vaccine", url:"https://www.salk.edu/news-release/the-day-polio-met-its-match-celebrating-70-years-of-the-salk-vaccine/" },
+  { text:"I'm just someone doing my bit to stop botnets.", attr:"Marcus Hutchins, after stopping the WannaCry cyberattack", url:"https://www.nbcnews.com/storyline/hacking-of-america/marcus-hutchins-saved-u-s-wannacry-cyberattack-bedroom-compter-n759931" },
+  { text:"Why can't we just clean this up?", attr:"Boyan Slat, age 16, founder of The Ocean Cleanup", url:"https://theoceancleanup.com/milestones/how-it-all-began/" },
+  { text:"The only way to do great work is to love what you do.", attr:"Steve Jobs, Stanford commencement address, 2005", url:"https://news.stanford.edu/2005/06/14/jobs-061505/" },
+  { text:"If I can do it, you can do it. Anyone can do it.", attr:"Gitanjali Rao, TIME's first Kid of the Year", url:"https://www.uspto.gov/learning-and-resources/journeys-innovation/field-stories/one-girls-commitment" },
+  { text:"Somewhere, something incredible is waiting to be known.", attr:"Carl Sagan", url:"https://en.wikipedia.org/wiki/Carl_Sagan" },
+  { text:"There is no stop button. There is no magic fix.", attr:"Vinisha Umashankar, teen inventor of a solar ironing cart", url:"https://time.com/6101003/earthshot-prize-india-solar-ironing/" },
+  { text:"If they don't give you a seat at the table, stand on it with a megaphone.", attr:"Mari Copeny, 'Little Miss Flint'", url:"https://yr.media/health/little-miss-flint-fighting-environmental-racism/" },
+  { text:"We are all equal now.", attr:"Luis Urzúa, shift supervisor of the trapped Chilean miners, 2010", url:"https://en.wikipedia.org/wiki/2010_Copiap%C3%B3_mining_accident" },
+  { text:"That's one small step for man, one giant leap for mankind.", attr:"Neil Armstrong, first Moon landing, 1969", url:"https://en.wikipedia.org/wiki/Apollo_11" },
+  { text:"I have not failed. I've just found 10,000 ways that won't work.", attr:"Thomas Edison", url:"https://en.wikipedia.org/wiki/Thomas_Edison" },
+  { text:"Nothing in life is to be feared, it is only to be understood.", attr:"Marie Curie", url:"https://en.wikipedia.org/wiki/Marie_Curie" },
+  { text:"The important thing is not to stop questioning.", attr:"Albert Einstein", url:"https://en.wikipedia.org/wiki/Albert_Einstein" },
+  { text:"It always seems impossible until it's done.", attr:"Nelson Mandela", url:"https://en.wikipedia.org/wiki/Nelson_Mandela" },
+  { text:"An innovation's true potential is understood only when it reaches people.", attr:"Vinisha Umashankar", url:"https://www.npr.org/sections/goatsandsoda/2021/11/03/1050227033/a-15-year-old-girl-invented-a-solar-ironing-cart-thats-winning-global-respect" }
+];
+
+const usedQuoteIndices = new Set();
+let lastQuoteIndex = -1;
+
+function nextQuote(){
+  if(usedQuoteIndices.size >= quotes.length) usedQuoteIndices.clear();
+  let idx;
+  do{ idx = Math.floor(Math.random()*quotes.length); }
+  while(usedQuoteIndices.has(idx) || (idx===lastQuoteIndex && quotes.length>1));
+  usedQuoteIndices.add(idx);
+  lastQuoteIndex = idx;
+  return quotes[idx];
+}
+
+const usedFactIndices = new Set();
+let lastFactIndex = -1;
+
+function nextFact(){
+  if(usedFactIndices.size >= facts.length) usedFactIndices.clear();
+  let idx;
+  do{ idx = Math.floor(Math.random()*facts.length); }
+  while(usedFactIndices.has(idx) || (idx===lastFactIndex && facts.length>1));
+  usedFactIndices.add(idx);
+  lastFactIndex = idx;
+  return facts[idx];
+}
+
+const SHEET_LOG_URL = 'https://script.google.com/macros/s/AKfycbzlY3FPMefxnoMPNOVQ8_bLJgY50F9KQdDpZ5BPnP04x2rMKMfXIS3FEkC7xUEmblF2/exec';
+
+function getUserName(){
+  var stored = null;
+  try{ stored = localStorage.getItem('caseFilesUserName'); }catch(err){}
+  if(stored) return stored;
+  var name = window.prompt("What's your name? (so we know who picked what)");
+  name = (name && name.trim()) ? name.trim() : 'Anonymous';
+  try{ localStorage.setItem('caseFilesUserName', name); }catch(err){}
+  return name;
+}
+
+const currentUser = getUserName();
+
+function switchUser(){
+  try{ localStorage.removeItem('caseFilesUserName'); }catch(err){}
+  location.reload();
+}
+
+function renderUserLine(){
+  var el = document.getElementById('userLine');
+  if(el) el.innerHTML = `Signed in as <b>${currentUser}</b> — <a onclick="switchUser()">not you?</a>`;
+}
+
+function logActivity(type, id, title){
+  try{
+    var url = SHEET_LOG_URL
+      + '?user=' + encodeURIComponent(currentUser)
+      + '&type=' + encodeURIComponent(type)
+      + '&id=' + encodeURIComponent(id)
+      + '&title=' + encodeURIComponent(title);
+    fetch(url, { method: 'GET', mode: 'no-cors' }).catch(()=>{});
+  }catch(err){
+    console.error('logActivity error:', err);
+  }
+}
+
+async function loadCases(){
+  try{
+    const res = await fetch(SHEET_LOG_URL + '?action=getCases');
+    const data = await res.json();
+    solved = data.solved || [];
+    open = data.open || [];
+    problems = data.problems || [];
+    if(data.quotes && data.quotes.length) quotes = data.quotes;
+    if(data.facts && data.facts.length) facts = data.facts.map(f => typeof f === 'string' ? { text: f, url: '' } : f);
+  }catch(err){
+    console.error('loadCases error:', err);
+  }
+}
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+let lastSolvedIds = [];
+
+function renderSolvedGrid(){
+  const solvedGrid = document.getElementById('solvedGrid');
+  const displayCount = Math.min(3, solved.length);
+  let pick;
+  let attempts = 0;
+  do{
+    pick = shuffle(solved).slice(0, displayCount);
+    attempts++;
+  } while(
+    attempts < 8 &&
+    solved.length > displayCount &&
+    pick.map(p=>p.id).sort().join(',') === lastSolvedIds.slice().sort().join(',')
+  );
+  lastSolvedIds = pick.map(p=>p.id);
+  solvedGrid.innerHTML='';
+  pick.forEach(item=>{
+    const c=document.createElement('div');
+    c.className='card headline';
+    c.innerHTML=`<span class="stamp solved">Solved</span>
+      <h3>${item.title}</h3>`;
+    c.onclick=()=>{ logActivity('closed_case', item.id, item.title); openDetail(item,true); };
+    solvedGrid.appendChild(c);
+  });
+}
+
+let lastTeenIds = [];
+
+function renderTeenGrid(){
+  const teenGrid = document.getElementById('teenGrid');
+  const displayCount = Math.min(3, open.length);
+  let pick;
+  let attempts = 0;
+  do{
+    pick = shuffle(open).slice(0, displayCount);
+    attempts++;
+  } while(
+    attempts < 8 &&
+    open.length > displayCount &&
+    pick.map(p=>p.id).sort().join(',') === lastTeenIds.slice().sort().join(',')
+  );
+  lastTeenIds = pick.map(p=>p.id);
+  teenGrid.innerHTML='';
+  pick.forEach(item=>{
+    const c=document.createElement('div');
+    c.className='card headline';
+    c.innerHTML=`<span class="stamp open">In progress</span>
+      <h3>${item.title}</h3>`;
+    c.onclick=()=>{ logActivity('teen_case', item.id, item.title); openDetail(item,false); };
+    teenGrid.appendChild(c);
+  });
+}
+
+let lastProblemsIds = [];
+
+function renderProblemsGrid(){
+  const problemsGrid = document.getElementById('problemsGrid');
+  const displayCount = Math.min(3, problems.length);
+  let pick;
+  let attempts = 0;
+  do{
+    pick = shuffle(problems).slice(0, displayCount);
+    attempts++;
+  } while(
+    attempts < 8 &&
+    problems.length > displayCount &&
+    pick.map(p=>p.id).sort().join(',') === lastProblemsIds.slice().sort().join(',')
+  );
+  lastProblemsIds = pick.map(p=>p.id);
+  problemsGrid.innerHTML='';
+  pick.forEach(item=>{
+    const c=document.createElement('div');
+    c.className='card headline';
+    c.innerHTML=`<span class="stamp open">Unsolved</span>
+      <h3>${item.title}</h3>`;
+    c.onclick=()=>{ logActivity('problem_viewed', item.id, item.title); openDetail(item,false,'problem'); };
+    problemsGrid.appendChild(c);
+  });
+}
+
+function renderQuote(){
+  const q = nextQuote();
+  const attrHtml = q.url
+    ? `<a href="${q.url}" target="_blank" rel="noopener noreferrer">— ${q.attr}</a>`
+    : `— ${q.attr}`;
+  document.getElementById('quoteText').innerHTML = `"${q.text}"<span class="attr">${attrHtml}</span>`;
+}
+
+function renderFact(){
+  const f = nextFact();
+  const factHtml = f.url
+    ? `<a href="${f.url}" target="_blank" rel="noopener noreferrer">${f.text}</a>`
+    : f.text;
+  document.getElementById('factText').innerHTML = `Cool fact to start: ${factHtml}`;
+}
+
+async function refreshAll(){
+  renderFact();
+  renderQuote();
+  renderSolvedGrid();
+  renderTeenGrid();
+  renderProblemsGrid();
+}
+
+renderFact();
+renderUserLine();
+renderQuote();
+document.getElementById('solvedGrid').innerHTML = '<p class="empty-note">Loading case files…</p>';
+document.getElementById('teenGrid').innerHTML = '<p class="empty-note">Loading case files…</p>';
+document.getElementById('problemsGrid').innerHTML = '<p class="empty-note">Loading case files…</p>';
+loadCases().then(()=>{
+  renderSolvedGrid();
+  renderTeenGrid();
+  renderProblemsGrid();
+});
+
+let problems = [];
+
+function openDetail(item,isSolved,kind){
+  kind = kind || (isSolved ? 'solved' : 'teen');
+  const stampText = kind==='solved' ? 'Solved' : kind==='problem' ? 'Unsolved' : 'In progress';
+  const panel=document.getElementById('detailPanel');
+  const diagramHtml = item.diagram==='flow' ? `<div class="diagram">${flowSvg(item.steps)}</div>`
+    : item.diagram==='chain' ? `<div class="diagram">${chainSvg()}</div>` : '';
+  const nextSectionHtml = isSolved ? '' : `
+    <div class="next-section">
+      <button class="next-opt" onclick="backToList()">← back to case files</button>
+    </div>`;
+  const linksHtml = item.links && item.links.length ? `
+    <div class="links">
+      <span class="links-label">Read more:</span>
+      ${item.links.map(l=>`<a href="${l.url}" target="_blank" rel="noopener noreferrer">${l.label}</a>`).join('')}
+    </div>` : '';
+  panel.innerHTML = `
+    <button class="close" onclick="closeDetail()">CLOSE ✕</button>
+    <span class="stamp ${isSolved?'solved':'open'}">${stampText}</span>
+    <h2>${item.title}</h2>
+    <div class="story">${item.story.map(p=>`<p>${p}</p>`).join('')}</div>
+    ${diagramHtml}
+    <div class="source">SOURCE — ${item.source}</div>
+    ${linksHtml}
+    ${nextSectionHtml}
+  `;
+  document.getElementById('overlay').classList.add('active');
+  document.getElementById('detailPanel').scrollTop = 0;
+}
+
+function backToList(){
+  closeDetail();
+}
+
+function closeDetail(){
+  document.getElementById('overlay').classList.remove('active');
+}
+document.getElementById('overlay').addEventListener('click',(e)=>{
+  if(e.target.id==='overlay') closeDetail();
+});
+</script>
+</body>
+</html>
