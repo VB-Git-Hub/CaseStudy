@@ -546,19 +546,22 @@ function nextFact(){
 const SHEET_LOG_URL = 'https://script.google.com/macros/s/AKfycbzlY3FPMefxnoMPNOVQ8_bLJgY50F9KQdDpZ5BPnP04x2rMKMfXIS3FEkC7xUEmblF2/exec';
 
 function getUserName(){
+  // sessionStorage (not localStorage) so the name is only remembered for
+  // this tab's session — closing the tab/browser and coming back later
+  // prompts again, as a new session.
   var stored = null;
-  try{ stored = localStorage.getItem('caseFilesUserName'); }catch(err){}
+  try{ stored = sessionStorage.getItem('caseFilesUserName'); }catch(err){}
   if(stored) return stored;
   var name = window.prompt("What's your name? (so we know who picked what)");
   name = (name && name.trim()) ? name.trim() : 'Anonymous';
-  try{ localStorage.setItem('caseFilesUserName', name); }catch(err){}
+  try{ sessionStorage.setItem('caseFilesUserName', name); }catch(err){}
   return name;
 }
 
 const currentUser = getUserName();
 
 function switchUser(){
-  try{ localStorage.removeItem('caseFilesUserName'); }catch(err){}
+  try{ sessionStorage.removeItem('caseFilesUserName'); }catch(err){}
   location.reload();
 }
 
