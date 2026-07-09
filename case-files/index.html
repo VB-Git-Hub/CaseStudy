@@ -524,30 +524,23 @@ let quotes = [
   { text:"An innovation's true potential is understood only when it reaches people.", attr:"Vinisha Umashankar", url:"https://www.npr.org/sections/goatsandsoda/2021/11/03/1050227033/a-15-year-old-girl-invented-a-solar-ironing-cart-thats-winning-global-respect" }
 ];
 
-const usedQuoteIndices = new Set();
-let lastQuoteIndex = -1;
+// quotes/facts are kept latest-first (see loadCases), so walking the index
+// forward on each call surfaces newest-to-oldest, wrapping back to the
+// newest once everything's been shown.
+let quoteIndex = 0;
 
 function nextQuote(){
-  if(usedQuoteIndices.size >= quotes.length) usedQuoteIndices.clear();
-  let idx;
-  do{ idx = Math.floor(Math.random()*quotes.length); }
-  while(usedQuoteIndices.has(idx) || (idx===lastQuoteIndex && quotes.length>1));
-  usedQuoteIndices.add(idx);
-  lastQuoteIndex = idx;
-  return quotes[idx];
+  const q = quotes[quoteIndex % quotes.length];
+  quoteIndex++;
+  return q;
 }
 
-const usedFactIndices = new Set();
-let lastFactIndex = -1;
+let factIndex = 0;
 
 function nextFact(){
-  if(usedFactIndices.size >= facts.length) usedFactIndices.clear();
-  let idx;
-  do{ idx = Math.floor(Math.random()*facts.length); }
-  while(usedFactIndices.has(idx) || (idx===lastFactIndex && facts.length>1));
-  usedFactIndices.add(idx);
-  lastFactIndex = idx;
-  return facts[idx];
+  const f = facts[factIndex % facts.length];
+  factIndex++;
+  return f;
 }
 
 const SHEET_LOG_URL = 'https://script.google.com/macros/s/AKfycbzlY3FPMefxnoMPNOVQ8_bLJgY50F9KQdDpZ5BPnP04x2rMKMfXIS3FEkC7xUEmblF2/exec';
@@ -597,8 +590,8 @@ async function loadCases(){
     solved = (data.solved || []).slice().reverse();
     open = (data.open || []).slice().reverse();
     problems = (data.problems || []).slice().reverse();
-    if(data.quotes && data.quotes.length) quotes = data.quotes;
-    if(data.facts && data.facts.length) facts = data.facts.map(f => typeof f === 'string' ? { text: f, url: '' } : f);
+    if(data.quotes && data.quotes.length) quotes = data.quotes.slice().reverse();
+    if(data.facts && data.facts.length) facts = data.facts.map(f => typeof f === 'string' ? { text: f, url: '' } : f).reverse();
     if(data.viewed) data.viewed.forEach(id => viewedIds.add(id));
   }catch(err){
     console.error('loadCases error:', err);
