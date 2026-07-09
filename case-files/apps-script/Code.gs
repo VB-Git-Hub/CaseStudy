@@ -43,7 +43,7 @@ var PENDING_COLUMNS = ['section', 'id', 'title', 'year', 'json', 'status', 'date
 function doGet(e) {
   var params = (e && e.parameter) || {};
   if (params.action === 'getCases') {
-    return getCasesResponse();
+    return getCasesResponse(params.user || '');
   }
   if (params.type) {
     return logActivityResponse(params);
@@ -63,10 +63,10 @@ function doPost(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-function getCasesResponse() {
+function getCasesResponse(user) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(CASES_SHEET_NAME);
-  var result = { solved: [], open: [], problems: [], quotes: [], facts: [] };
+  var result = { solved: [], open: [], problems: [], quotes: [], facts: [], viewed: [] };
 
   if (sheet) {
     var lastRow = sheet.getLastRow();
@@ -91,8 +91,43 @@ function getCasesResponse() {
     }
   }
 
+  if (user) {
+    result.viewed = getViewedIds(user);
+  }
+
   return ContentService.createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+var VIEW_ACTIVITY_TYPES = { closed_case: 1, teen_case: 1, problem_viewed: 1, problem_picked: 1 };
+
+/**
+ * Every card-open click is already logged to the "Log" tab via
+ * logActivityResponse (type = closed_case | teen_case | problem_viewed).
+ * Rather than tracking "already viewed" separately (e.g. in localStorage,
+ * which is per-browser and doesn't follow a user across devices), this
+ * reads that existing log back out, filtered to one user's view-type
+ * events, so "don't show me cards I've already opened" works from
+ * whichever device/browser the user is on.
+ */
+function getViewedIds(user) {
+  var ids = [];
+  var seen = {};
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(LOG_SHEET_NAME);
+  if (!sheet) return ids;
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return ids;
+  var rows = sheet.getRange(2, 1, lastRow - 1, 5).getValues();
+  rows.forEach(function (row) {
+    var rowUser = row[1];
+    var type = row[2];
+    var id = row[3];
+    if (rowUser === user && VIEW_ACTIVITY_TYPES[type] && id && !seen[id]) {
+      seen[id] = true;
+      ids.push(id);
+    }
+  });
+  return ids;
 }
 
 function logActivityResponse(params) {

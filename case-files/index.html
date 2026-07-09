@@ -589,13 +589,14 @@ function logActivity(type, id, title){
 
 async function loadCases(){
   try{
-    const res = await fetch(SHEET_LOG_URL + '?action=getCases');
+    const res = await fetch(SHEET_LOG_URL + '?action=getCases&user=' + encodeURIComponent(currentUser));
     const data = await res.json();
     solved = data.solved || [];
     open = data.open || [];
     problems = data.problems || [];
     if(data.quotes && data.quotes.length) quotes = data.quotes;
     if(data.facts && data.facts.length) facts = data.facts.map(f => typeof f === 'string' ? { text: f, url: '' } : f);
+    if(data.viewed) data.viewed.forEach(id => viewedIds.add(id));
   }catch(err){
     console.error('loadCases error:', err);
   }
@@ -610,14 +611,16 @@ function shuffle(arr){
   return a;
 }
 
+// Viewed ids come from the Log sheet (see loadCases), keyed by user name,
+// so "already viewed" follows the user across devices/browsers instead of
+// being stuck in one browser's localStorage. markViewed() just updates the
+// in-memory copy immediately for the current session — logActivity() is
+// what actually persists the view (as a closed_case/teen_case/problem_viewed
+// row), and the next getCases fetch picks it back up as authoritative.
 let viewedIds = new Set();
-try{
-  viewedIds = new Set(JSON.parse(localStorage.getItem('caseFilesViewedIds') || '[]'));
-}catch(err){}
 
 function markViewed(id){
   viewedIds.add(id);
-  try{ localStorage.setItem('caseFilesViewedIds', JSON.stringify([...viewedIds])); }catch(err){}
 }
 
 let lastSolvedIds = [];
