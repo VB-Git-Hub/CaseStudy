@@ -610,19 +610,34 @@ function shuffle(arr){
   return a;
 }
 
+let viewedIds = new Set();
+try{
+  viewedIds = new Set(JSON.parse(localStorage.getItem('caseFilesViewedIds') || '[]'));
+}catch(err){}
+
+function markViewed(id){
+  viewedIds.add(id);
+  try{ localStorage.setItem('caseFilesViewedIds', JSON.stringify([...viewedIds])); }catch(err){}
+}
+
 let lastSolvedIds = [];
 
 function renderSolvedGrid(){
   const solvedGrid = document.getElementById('solvedGrid');
-  const displayCount = Math.min(3, solved.length);
+  const available = solved.filter(item => !viewedIds.has(item.id));
+  if(available.length === 0){
+    solvedGrid.innerHTML = '<p class="empty-note">You\'ve seen every closed case here — check back soon for more.</p>';
+    return;
+  }
+  const displayCount = Math.min(3, available.length);
   let pick;
   let attempts = 0;
   do{
-    pick = shuffle(solved).slice(0, displayCount);
+    pick = shuffle(available).slice(0, displayCount);
     attempts++;
   } while(
     attempts < 8 &&
-    solved.length > displayCount &&
+    available.length > displayCount &&
     pick.map(p=>p.id).sort().join(',') === lastSolvedIds.slice().sort().join(',')
   );
   lastSolvedIds = pick.map(p=>p.id);
@@ -632,7 +647,7 @@ function renderSolvedGrid(){
     c.className='card headline';
     c.innerHTML=`<span class="stamp solved">Solved</span>
       <h3>${item.title}</h3>`;
-    c.onclick=()=>{ logActivity('closed_case', item.id, item.title); openDetail(item,true); };
+    c.onclick=()=>{ logActivity('closed_case', item.id, item.title); markViewed(item.id); openDetail(item,true); };
     solvedGrid.appendChild(c);
   });
 }
@@ -641,15 +656,20 @@ let lastTeenIds = [];
 
 function renderTeenGrid(){
   const teenGrid = document.getElementById('teenGrid');
-  const displayCount = Math.min(3, open.length);
+  const available = open.filter(item => !viewedIds.has(item.id));
+  if(available.length === 0){
+    teenGrid.innerHTML = '<p class="empty-note">You\'ve seen every teen case here — check back soon for more.</p>';
+    return;
+  }
+  const displayCount = Math.min(3, available.length);
   let pick;
   let attempts = 0;
   do{
-    pick = shuffle(open).slice(0, displayCount);
+    pick = shuffle(available).slice(0, displayCount);
     attempts++;
   } while(
     attempts < 8 &&
-    open.length > displayCount &&
+    available.length > displayCount &&
     pick.map(p=>p.id).sort().join(',') === lastTeenIds.slice().sort().join(',')
   );
   lastTeenIds = pick.map(p=>p.id);
@@ -659,7 +679,7 @@ function renderTeenGrid(){
     c.className='card headline';
     c.innerHTML=`<span class="stamp open">In progress</span>
       <h3>${item.title}</h3>`;
-    c.onclick=()=>{ logActivity('teen_case', item.id, item.title); openDetail(item,false); };
+    c.onclick=()=>{ logActivity('teen_case', item.id, item.title); markViewed(item.id); openDetail(item,false); };
     teenGrid.appendChild(c);
   });
 }
@@ -668,15 +688,20 @@ let lastProblemsIds = [];
 
 function renderProblemsGrid(){
   const problemsGrid = document.getElementById('problemsGrid');
-  const displayCount = Math.min(3, problems.length);
+  const available = problems.filter(item => !viewedIds.has(item.id));
+  if(available.length === 0){
+    problemsGrid.innerHTML = '<p class="empty-note">You\'ve seen every open problem here — check back soon for more.</p>';
+    return;
+  }
+  const displayCount = Math.min(3, available.length);
   let pick;
   let attempts = 0;
   do{
-    pick = shuffle(problems).slice(0, displayCount);
+    pick = shuffle(available).slice(0, displayCount);
     attempts++;
   } while(
     attempts < 8 &&
-    problems.length > displayCount &&
+    available.length > displayCount &&
     pick.map(p=>p.id).sort().join(',') === lastProblemsIds.slice().sort().join(',')
   );
   lastProblemsIds = pick.map(p=>p.id);
@@ -686,7 +711,7 @@ function renderProblemsGrid(){
     c.className='card headline';
     c.innerHTML=`<span class="stamp open">Unsolved</span>
       <h3>${item.title}</h3>`;
-    c.onclick=()=>{ logActivity('problem_viewed', item.id, item.title); openDetail(item,false,'problem'); };
+    c.onclick=()=>{ logActivity('problem_viewed', item.id, item.title); markViewed(item.id); openDetail(item,false,'problem'); };
     problemsGrid.appendChild(c);
   });
 }
