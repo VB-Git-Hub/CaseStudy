@@ -116,8 +116,13 @@ function getViewedIds(user) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(LOG_SHEET_NAME);
   if (!sheet) return ids;
   var lastRow = sheet.getLastRow();
-  if (lastRow < 2) return ids;
-  var rows = sheet.getRange(2, 1, lastRow - 1, 5).getValues();
+  if (lastRow < 1) return ids;
+  // Don't assume row 1 is a header — it may not be (e.g. rows were cleared
+  // manually at some point, leaving data starting at row 1). Detect it.
+  var hasHeader = sheet.getRange(1, 1).getValue() === 'Timestamp';
+  var startRow = hasHeader ? 2 : 1;
+  if (lastRow < startRow) return ids;
+  var rows = sheet.getRange(startRow, 1, lastRow - startRow + 1, 5).getValues();
   rows.forEach(function (row) {
     var rowUser = row[1];
     var type = row[2];
@@ -138,6 +143,11 @@ function logActivityResponse(params) {
     var sheet = ss.getSheetByName(LOG_SHEET_NAME);
     if (!sheet) {
       sheet = ss.insertSheet(LOG_SHEET_NAME);
+      sheet.appendRow(['Timestamp', 'User', 'Type', 'Item ID', 'Item Title']);
+    } else if (sheet.getLastRow() === 0) {
+      // Tab exists but is empty (e.g. rows were cleared manually) — restore
+      // the header so the sheet stays human-readable and getViewedIds'
+      // header detection keeps working.
       sheet.appendRow(['Timestamp', 'User', 'Type', 'Item ID', 'Item Title']);
     }
     sheet.appendRow([
