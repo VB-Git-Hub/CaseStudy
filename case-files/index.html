@@ -591,24 +591,18 @@ async function loadCases(){
   try{
     const res = await fetch(SHEET_LOG_URL + '?action=getCases&user=' + encodeURIComponent(currentUser));
     const data = await res.json();
-    solved = data.solved || [];
-    open = data.open || [];
-    problems = data.problems || [];
+    // Cases tab rows are appended in the order they're added (seed data
+    // first, then approved Pending items after) — reversing puts the most
+    // recently added entries first, so grids show latest-to-oldest.
+    solved = (data.solved || []).slice().reverse();
+    open = (data.open || []).slice().reverse();
+    problems = (data.problems || []).slice().reverse();
     if(data.quotes && data.quotes.length) quotes = data.quotes;
     if(data.facts && data.facts.length) facts = data.facts.map(f => typeof f === 'string' ? { text: f, url: '' } : f);
     if(data.viewed) data.viewed.forEach(id => viewedIds.add(id));
   }catch(err){
     console.error('loadCases error:', err);
   }
-}
-
-function shuffle(arr){
-  const a=[...arr];
-  for(let i=a.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
-  }
-  return a;
 }
 
 // Viewed ids come from the Log sheet (see loadCases), keyed by user name,
@@ -623,8 +617,6 @@ function markViewed(id){
   viewedIds.add(id);
 }
 
-let lastSolvedIds = [];
-
 function renderSolvedGrid(){
   const solvedGrid = document.getElementById('solvedGrid');
   const available = solved.filter(item => !viewedIds.has(item.id));
@@ -632,18 +624,7 @@ function renderSolvedGrid(){
     solvedGrid.innerHTML = '<p class="empty-note">You\'ve seen every closed case here — check back soon for more.</p>';
     return;
   }
-  const displayCount = Math.min(3, available.length);
-  let pick;
-  let attempts = 0;
-  do{
-    pick = shuffle(available).slice(0, displayCount);
-    attempts++;
-  } while(
-    attempts < 8 &&
-    available.length > displayCount &&
-    pick.map(p=>p.id).sort().join(',') === lastSolvedIds.slice().sort().join(',')
-  );
-  lastSolvedIds = pick.map(p=>p.id);
+  const pick = available.slice(0, Math.min(3, available.length));
   solvedGrid.innerHTML='';
   pick.forEach(item=>{
     const c=document.createElement('div');
@@ -655,8 +636,6 @@ function renderSolvedGrid(){
   });
 }
 
-let lastTeenIds = [];
-
 function renderTeenGrid(){
   const teenGrid = document.getElementById('teenGrid');
   const available = open.filter(item => !viewedIds.has(item.id));
@@ -664,18 +643,7 @@ function renderTeenGrid(){
     teenGrid.innerHTML = '<p class="empty-note">You\'ve seen every teen case here — check back soon for more.</p>';
     return;
   }
-  const displayCount = Math.min(3, available.length);
-  let pick;
-  let attempts = 0;
-  do{
-    pick = shuffle(available).slice(0, displayCount);
-    attempts++;
-  } while(
-    attempts < 8 &&
-    available.length > displayCount &&
-    pick.map(p=>p.id).sort().join(',') === lastTeenIds.slice().sort().join(',')
-  );
-  lastTeenIds = pick.map(p=>p.id);
+  const pick = available.slice(0, Math.min(3, available.length));
   teenGrid.innerHTML='';
   pick.forEach(item=>{
     const c=document.createElement('div');
@@ -687,8 +655,6 @@ function renderTeenGrid(){
   });
 }
 
-let lastProblemsIds = [];
-
 function renderProblemsGrid(){
   const problemsGrid = document.getElementById('problemsGrid');
   const available = problems.filter(item => !viewedIds.has(item.id));
@@ -696,18 +662,7 @@ function renderProblemsGrid(){
     problemsGrid.innerHTML = '<p class="empty-note">You\'ve seen every open problem here — check back soon for more.</p>';
     return;
   }
-  const displayCount = Math.min(3, available.length);
-  let pick;
-  let attempts = 0;
-  do{
-    pick = shuffle(available).slice(0, displayCount);
-    attempts++;
-  } while(
-    attempts < 8 &&
-    available.length > displayCount &&
-    pick.map(p=>p.id).sort().join(',') === lastProblemsIds.slice().sort().join(',')
-  );
-  lastProblemsIds = pick.map(p=>p.id);
+  const pick = available.slice(0, Math.min(3, available.length));
   problemsGrid.innerHTML='';
   pick.forEach(item=>{
     const c=document.createElement('div');
